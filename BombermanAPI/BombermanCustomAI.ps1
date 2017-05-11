@@ -1,4 +1,4 @@
-Import-Module .\BombermanAPI.psm1 -Force 
+﻿Import-Module .\BombermanAPI.psm1 -Force 
 
 
 
@@ -57,7 +57,7 @@ Process
 			switch ($boardString[$GameStringCounter])
 			{
 				# This is your Bomberman. This is what he usually looks like
-				'?'
+				'☺'
 				{
 					$GameBoardElementArray[$x,$y] = 'Bomberman'
 					$point = $null

@@ -1,4 +1,4 @@
-<# 
+﻿<# 
  .Synopsis
   Displays a visual representation of a calendar.
 
@@ -341,7 +341,7 @@ Process
 			switch ($boardString[$GameStringCounter])
 			{
 				# This is your Bomberman. This is what he usually looks like
-				'?'
+				'☺'
 				{
 					$GameBoardElementArray[$x,$y] = 'Bomberman'
 				}
