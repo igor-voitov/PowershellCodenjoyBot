@@ -1,17 +1,13 @@
 ### PowershellCodenjoyBot
 Powershell Bot/Module for Bomberman game 
-
-Prerequisites: .NET Framework since 4.5,
-
-Operating Jetty server and Java WAR webapp accepting WebSockets connections.
+Prerequisites: 
+.NET Framework since 4.5
+Operating Jetty server and Java WAR webapp accepting WebSockets connections
 
 Follow the link below to quickly build your own local gameserver and to learn more about Codenjoy:
-
 https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo
 
-
 Spin-up local server and register your username:
-
 http://127.0.0.1:8080/codenjoy-contest/register
 
 Bobmberman games rules avaliable at:
@@ -23,20 +19,20 @@ https://github.com/brianddk/ripple-ps-websocket
 
 ### Quickstart
 
-1. Import BombermanAPI.psm1 module to access helper cmdlets 
+**1. Import BombermanAPI.psm1 module to access helper cmdlets** 
 Import-Module .\BombermanAPI.psm1 -Force
 
-2. Change/Set your Gameserver websocket connection URI and your Username in the $Global:BombermanURI variable
-[URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
+**2. Change/Set your Gameserver websocket connection URI and your Username in the $Global:BombermanURI variable**
+`[URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"`
 
-3. You are ready to go! 
-Surround Invoke-GameAction cmdlet with infinite loop to quicktest.
+**3. You are ready to go!** 
+Surround `Invoke-GameAction` cmdlet with infinite loop to quicktest.
 Your Bomber will start moving and acting.
 Below sample represents not a clever but constanly playing bot.
-while ($true)
-{
-	Invoke-GameAction -BombermanAction $(Get-Random("act", "left", "right", "up", "down"))
-}
+	while ($true)
+	{
+		Invoke-GameAction -BombermanAction $(Get-Random("act", "left", "right", "up", "down"))
+	}
 
 
 ### How to analyze the game and to make intelligent moves
