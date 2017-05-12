@@ -1,4 +1,4 @@
-﻿# Poweshell script to control your Bomberman
+# Poweshell script to control your Bomberman
 # Prerequesits: .NET Framework since 4.5, 
 # Jetty server, Java WAR accepting WebSockets connections,
 # Follow link below to quickly build your own local gameserver:
