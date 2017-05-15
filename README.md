@@ -127,7 +127,6 @@ By analyzing a given output collection you can get inside about elements count/ 
 
   * Your Bomberman
   ```powershell
-  $myBoardString = Get-GameBoardRawString 
   $myBomber = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Bomberman
   $myBomber
   ```
@@ -149,6 +148,6 @@ By analyzing a given output collection you can get inside about elements count/ 
 
   * Bombs
   ```powershell
-  $takeCare = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBombBomberman
-  $takeCare[0]
+  $beware = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBombBomberman
+  $beware[0]
   ```
