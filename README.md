@@ -103,8 +103,8 @@ $myCurrentGameBoard[30,5]
 
 
 * Here is how to construct a basic decision.  
-For instance, let's check whether it's okay to move into X=30 Y=5.
-IF Wall,WallDestroyable or MeatChopper there 
+For instance, let's check whether it's okay to move into X=30 Y=5.  
+If Wall,WallDestroyable or MeatChopper there than we can't move, else can move 
 ```powershell
 if ($myCurrentGameBoard[30,5] -match "Wall","WallDestroyable","MeatChopper")
 {
@@ -132,21 +132,21 @@ By analyzing a given output collection you can get inside about elements count/ 
   
   * All walls
   ```powershell
-$AllWalls = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Wall
-$AllWalls.Count
-```
+  $AllWalls = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Wall
+  $AllWalls.Count
+  ```
 
-  * To find other bombermans position
+  * Other players bombermans
   ```powershell
-$badGuys = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBomberman
-$badGuys.Count
-$badGuys[0]
-$badGuys[1]
-$badGuys[2]
-```
+  $badGuys = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBomberman
+  $badGuys.Count
+  $badGuys[0]
+  $badGuys[1]
+  $badGuys[2]
+  ```
 
   * Bombs
   ```powershell
-$takeCare = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBombBomberman
-$takeCare[0]
-```
+  $takeCare = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBombBomberman
+  $takeCare[0]
+  ```
