@@ -92,13 +92,13 @@ while ($true)
 
 
 * To get gameboard elements represented as readeble words use **`Get-GameBoardElementArray`**  
-This way you will recieve a Two-Dimensional string array populated with game elements values like Bomberman, BombBomberman, BombTimer2 and so forth:
+This way you will recieve a two-dimensional string array populated with game elements values like Bomberman, BombBomberman, BombTimer2 and so forth:
 ```powershell
 $myCurrentGameBoard = Get-GameBoardElementArray -GameBoardRawString $myBoardString
 ```
 
 
-* Get any element by its array index (which are X-asis,Y-asis coordinates)
+* Refer to any element by its index within the array (that is X,Y coordinates)
 ```powershell
 $myCurrentGameBoard[30,5]
 ```
