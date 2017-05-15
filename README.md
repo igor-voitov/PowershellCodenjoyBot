@@ -1,34 +1,40 @@
-### PowershellCodenjoyBot
+## PowershellCodenjoyBot
 Powershell helper/client module for 
-[CodingDojo project](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) **Bomberman game**.
+[CodingDojo project](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) **Bomberman game**.  
 *Prerequisites: .NET Framework since 4.5*
 
-[Build/Run local gameserver](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) and [Register your player](http://127.0.0.1:8080/codenjoy-contest/register)
+[Bobmberman game rules.](https://github.com/codenjoyme/codenjoy/blob/master/CodingDojo/games/bomberman/src/main/webapp/resources/help/bomberman.html)
 
-{Bobmberman game rules.](https://github.com/codenjoyme/codenjoy/blob/master/CodingDojo/games/bomberman/src/main/webapp/resources/help/bomberman.html)
+Powershell WebSockets implementation based on the following ideas:  
+https://github.com/markwragg/Powershell-SlackBot  
+https://github.com/brianddk/ripple-ps-websocket  
 
-Powershell WebSockets implementation based on the following ideas:
-https://github.com/markwragg/Powershell-SlackBot
-https://github.com/brianddk/ripple-ps-websocket
-
+---------------
 ### Quickstart
 
-1. Import BombermanAPI.psm1 module to access helper cmdlets 
-Import-Module .\BombermanAPI.psm1 -Force
+0. [Build/Run local gameserver](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) and [Register your player](http://127.0.0.1:8080/codenjoy-contest/register)
 
-2. Change/Set your Gameserver websocket connection URI and your Username in the $Global:BombermanURI variable
+1. Import **`BombermanAPI.psm1`** module to access helper cmdlets 
+```powershell
+Import-Module .\BombermanAPI.psm1 -Force
+```
+
+2. Change/Set your Gameserver websocket connection URI and your Username in the **`$Global:BombermanURI`** variable
+```powershell
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
+```
 
 3. You are ready to go! 
-Surround Invoke-GameAction cmdlet with infinite loop to quicktest.
+Surround **`Invoke-GameAction`** cmdlet with infinite loop to quicktest.
 Your Bomber will start moving and acting.
 Below sample represents not a clever but constanly playing bot.
+```powershell
 while ($true)
 {
 	Invoke-GameAction -BombermanAction $(Get-Random("act", "left", "right", "up", "down"))
 }
-
-
+```
+---------------------
 ### How to analyze the game and to make intelligent moves
 
 Gameserver constantly sends [string] gameboard with current situation, here is how it looks like:
