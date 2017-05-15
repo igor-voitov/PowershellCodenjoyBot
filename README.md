@@ -36,9 +36,9 @@ while ($true)
 ### How to analyze the game and to make intelligent moves
 
 
-* Gameserver constantly sends [string] gameboard with current situation, here is how it looks like:  
-board=0000000000000000000000000000000000                     #  ##     00 0 0 0 0 0 0 0#0 0#0#0 0 ...  
-BoardSize is 33x33 point, so you will get a string of 33x33+6(prefix)=1095 UFT8 chars every tick(second) 
+* Gameserver constantly sends string gameboard describing current game situation, here is how it looks like:  
+**board=☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼        #   # #               #☼☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼              ##     ♥     ### ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼&☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼                #        #     ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼☼                           # ##☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼&                             #☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼                               ☼☼ ☼ ☼ ☼ ☼ ☼ ☼&☼ ☼ ☼ ☼ ☼ ☼#☼ ☼ ☼#☼☼                 #       ##    ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼                        # #    ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼#☼ ☼☼    &           #    #       # ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼ ☼ ☼☼                     #    #  # ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼         ##  #          ## ## #☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼#☼ ☼ ☼☼##        &       # #  ##   #  ☼☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼ ☼ ☼☼###  #  #         #    # ###   ☼☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼ ☼☼# # # #       # #♥##   # ####  ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼#☼#☼☺☼ ☼ ☼☼&   #  #      #   &  ## ###   &☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼    #     #     # #     # & # &☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼**  
+BoardSize is 33x33 points, therefore you will get a string of 33x33+6(prefix)=1095 UFT8 characters every tick(second) 
 Use **`Get-GameBoardRawString`** cmdlet to recieve gameboard rawstring
 ```powershell
 Get-GameBoardRawString
@@ -51,7 +51,7 @@ Get-GameBoardRawString | Show-GameBoardRawGrid
 ```
 
 
-* To get a [char]Two-Dimensional Array of gameboard use **`Get-GameBoardCharArray`** :
+* To get a [char]two-dimensional array of gameboard use **`Get-GameBoardCharArray`** :
 ```powershell
 $myGameboard = Get-GameBoardRawString | Get-GameBoardCharArray
 ```
@@ -63,10 +63,44 @@ $myGameboard[10,20]
 ```
 
 
-* To get a single visual gameboard snaphot, pipe gamestring into **`Show-GameBoardCharArray`**:
+* To get a single visual gameboard snaphot, pipe gamestring into **`Show-GameBoardCharArray`**
 ```powershell
 Get-GameBoardRawString | Show-GameBoardCharArray
 ```
+Here is a sample output:
+☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼
+☼    ## ##        &   &      ## ☼
+☼ ☼ ☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼
+☼ #     #                       ☼
+☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼  #                            ☼
+☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼                               ☼
+☼ ☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼        &    #                 ☼
+☼ ☼ ☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼&     #     #                  ☼
+☼ ☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼# #                         &  ☼
+☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼  ##           ♥4         #    ☼
+☼ ☼ ☼#☼#☼ ☼ ☼#☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼  #      #                     ☼
+☼ ☼ ☼#☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼    #      # #  # #&      #    ☼
+☼#☼ ☼&☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼♥☼#☼ ☼
+☼              & # #         # #☼
+☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼#☼ ☼ ☼ ☼
+☼##   #           #   # ## #    ☼
+☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼#☼ ☼ ☼ ☼
+☼#   #            #    ## ## #  ☼
+☼ ☼#☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼#☼ ☼#☼
+☼# #             # ##  ## #### #☼
+☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼ ☼#☼#☼
+☼ ##                 ## #   ☺  #☼
+☼&☼#☼ ☼ ☼&☼ ☼#☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼
+☼          #  #  ## #        #  ☼
+☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼
 
 
 * You can make a realtime console GUI, just append a kind of infinite loop:
