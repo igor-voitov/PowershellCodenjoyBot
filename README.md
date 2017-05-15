@@ -1,20 +1,11 @@
 ### PowershellCodenjoyBot
-Powershell helper module for 
-[CodingDojo project](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) Bomberman game.
+Powershell helper/client module for 
+[CodingDojo project](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) **Bomberman game**.
+*Prerequisites: .NET Framework since 4.5*
 
-Prerequisites: .NET Framework since 4.5
+[Build/Run local gameserver](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) and [Register your player](http://127.0.0.1:8080/codenjoy-contest/register)
 
-Follow the link below to quickly build your own local gameserver and to learn more about Codenjoy:
-
-[link] (http://google.com)
-
-
-Spin-up local server and register your username:
-
-http://127.0.0.1:8080/codenjoy-contest/register
-
-Bobmberman games rules avaliable at:
-https://github.com/codenjoyme/codenjoy/blob/master/CodingDojo/games/bomberman/src/main/webapp/resources/help/bomberman.html
+{Bobmberman game rules.](https://github.com/codenjoyme/codenjoy/blob/master/CodingDojo/games/bomberman/src/main/webapp/resources/help/bomberman.html)
 
 Powershell WebSockets implementation based on the following ideas:
 https://github.com/markwragg/Powershell-SlackBot
