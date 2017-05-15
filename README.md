@@ -24,10 +24,8 @@ Import-Module .\BombermanAPI.psm1 -Force
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
 ```
 
-3. You are ready to go! 
-Surround **`Invoke-GameAction`** cmdlet with infinite loop to quicktest.
-Your Bomber will start moving and acting.
-Below sample represents not a clever but constanly playing bot.
+3. Surround **`Invoke-GameAction`** cmdlet with infinite loop to quicktest.
+Your Bomber will start moving and acting constantly
 ```powershell
 while ($true)
 {
@@ -37,48 +35,76 @@ while ($true)
 ---------------------
 ### How to analyze the game and to make intelligent moves
 
-Gameserver constantly sends [string] gameboard with current situation, here is how it looks like:
-board=0000000000000000000000000000000000                     #  ##     00 0 0 0 0 0 0 0#0 0#0#0 0 ...
+
+* Gameserver constantly sends [string] gameboard with current situation, here is how it looks like:  
+board=0000000000000000000000000000000000                     #  ##     00 0 0 0 0 0 0 0#0 0#0#0 0 ...  
 BoardSize is 33x33 point, so you will get a string of 33x33+6(prefix)=1095 UFT8 chars every tick(second) 
-Use Get-GameBoardRawString cmdlet to recieve gameboard rawstring
+Use **`Get-GameBoardRawString`** cmdlet to recieve gameboard rawstring
+```powershell
 Get-GameBoardRawString
+```
 
-To make it readable pipe it into Show-GameBoardRawGrid cmdlet. It will insert newline every 33 symbols
+
+* To make it readable pipe it into Show-GameBoardRawGrid cmdlet. It will insert newline every 33 symbols:
+```powershell
 Get-GameBoardRawString | Show-GameBoardRawGrid
+```
 
-To get a [char]Two-Dimensional Array of gameboard use Get-GameBoardCharArray
+
+* To get a [char]Two-Dimensional Array of gameboard use **`Get-GameBoardCharArray`** :
+```powershell
 $myGameboard = Get-GameBoardRawString | Get-GameBoardCharArray
-Now you have the full board, chars and coordinates(x,y) of these chars. Here is how to get char at X=10,Y=20
+```
+
+
+* Now you have the full board, chars and coordinates(x,y) of these chars. Here is how to get char at X=10,Y=20 :
+```powershell
 $myGameboard[10,20]
+```
 
-To get a single readable board pipe gamestring into Show-GameBoardCharArray
+
+* To get a single visual gameboard snaphot, pipe gamestring into **`Show-GameBoardCharArray`**:
+```powershell
 Get-GameBoardRawString | Show-GameBoardCharArray
+```
 
-You can reciece a realtime console GUI, just append a kind of infinite loop:
+
+* You can reciece a realtime console GUI, just append a kind of infinite loop:
+```powershell
 while ($true)
 {
 	Get-GameBoardRawString | Show-GameBoardCharArray
 	Clear-Host
 }
+```
 
-You can populate your array with raw gamestrings for future use
+
+* You can store raw gamestrings to analyze later:
+```powershell
 while ($true)
 {
 	[string[]]$myGameHistory += Get-GameBoardRawString
 }
 [string[]]$myGameHistory.ForEach({Show-GameBoardCharArray -GameBoardRawString $_})
+```
 
 
-To get gameboard array represented as human readeble elements use Get-GameBoardElementArray
+* To get gameboard elements represented as readeble words use **`Get-GameBoardElementArray`**  
+This way you will recieve a Two-Dimensional string array populated with game elements values like Bomberman, BombBomberman, BombTimer2 and so forth:
+```powershell
 $myCurrentGameBoard = Get-GameBoardElementArray -GameBoardRawString $myBoardString
+```
 
-This way you have recieved a Two-Dimensional string array populated with readeble game elements instead of chars :
-Bomberman, BombBomberman, BombTimer2 and so forth
-Get any element by its array index (which is X-asis,Y-asis coordinates)
+
+* Get any element by its array index (which are X-asis,Y-asis coordinates)
+```powershell
 $myCurrentGameBoard[30,5]
+```
 
-Now you are free to construct a simple BOT decision.
-For instance, let's check whether it's okay to move into X=30 Y=5
+
+* Here is how to construct a basic decision.  
+For instance, let's check whether it's okay to move into X=30 Y=5. IF Wall,WallDestroyable or MeatChopper 
+```powershell
 if ($myCurrentGameBoard[30,5] -match "Wall","WallDestroyable","MeatChopper")
 {
 	"Cant move through a $($myCurrentGameBoard[15,15])"
@@ -87,9 +113,11 @@ else
 {
 	"A $($myCurrentGameBoard[15,15]) there, let's move"
 }
+```
 
-To access all game elements you can use Get-GameElementCollection cmdlet.
-Get-GameElementCollection capable to return all the possible game elements and them coordinates represented as a collection of (X,Y) points.
+
+* To access all game elements you can use Get-GameElementCollection cmdlet.
+Get-GameElementCollection capable to return all possible game elements and them coordinates represented as a collection of (X,Y) points.
 You have to specify required elements collection via -Element parameter.
 Command will return a collection of all x,y points for all given elements.
 By analyzing a given collection you will get inside about how many elements of a given type gameboard contains and where they are located.
