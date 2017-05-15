@@ -1,6 +1,6 @@
 ### PowershellCodenjoyBot
 Powershell helper module for 
-[CodingDojo project] (https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo) Bomberman game.
+[CodingDojo project] (https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) Bomberman game.
 
 Prerequisites: .NET Framework since 4.5
 
