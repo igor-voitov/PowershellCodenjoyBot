@@ -57,7 +57,7 @@ Get-GameBoardRawString | Show-GameBoardCharArray
 while ($true)
 {
 	Get-GameBoardRawString | Show-GameBoardCharArray
-	Clear-Host
+	#Clear-Host
 }
 
 # You can populate your array with raw gamestrings for future use
