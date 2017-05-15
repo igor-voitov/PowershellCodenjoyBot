@@ -69,7 +69,7 @@ Get-GameBoardRawString | Show-GameBoardCharArray
 ```
 
 
-* You can reciece a realtime console GUI, just append a kind of infinite loop:
+* You can make a realtime console GUI, just append a kind of infinite loop:
 ```powershell
 while ($true)
 {
