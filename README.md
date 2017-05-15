@@ -1,8 +1,7 @@
 ### PowershellCodenjoyBot
-Powershell Bot/Module for Bomberman game 
-Prerequisites: 
-.NET Framework since 4.5
-Operating Jetty server and Java WAR webapp accepting WebSockets connections
+Powershell helper module to play CodingDojo project Bomberman.
+
+Prerequisites: .NET Framework since 4.5
 
 Follow the link below to quickly build your own local gameserver and to learn more about Codenjoy:
 https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo
