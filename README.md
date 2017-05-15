@@ -1,11 +1,12 @@
 ### PowershellCodenjoyBot
 Powershell helper module for 
-[CodingDojo project] (https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) Bomberman game.
+[ CodingDojo project ] (https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) Bomberman game.
 
 Prerequisites: .NET Framework since 4.5
 
 Follow the link below to quickly build your own local gameserver and to learn more about Codenjoy:
 
+[link] (http://google.com)
 
 Spin-up local server and register your username:
 http://127.0.0.1:8080/codenjoy-contest/register
@@ -41,7 +42,7 @@ while ($true)
 ### How to analyze the game and to make intelligent moves
 
 Gameserver constantly sends [string] gameboard with current situation, here is how it looks like:
-board=☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼                     #  ##     ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼#☼#☼ ☼ ...
+board=
 BoardSize is 33x33 point, so you will get a string of 33x33+6(prefix)=1095 UFT8 chars every tick(second) 
 Use Get-GameBoardRawString cmdlet to recieve gameboard rawstring
 Get-GameBoardRawString
