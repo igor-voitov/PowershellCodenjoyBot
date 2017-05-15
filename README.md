@@ -103,42 +103,50 @@ $myCurrentGameBoard[30,5]
 
 
 * Here is how to construct a basic decision.  
-For instance, let's check whether it's okay to move into X=30 Y=5. IF Wall,WallDestroyable or MeatChopper 
+For instance, let's check whether it's okay to move into X=30 Y=5.
+IF Wall,WallDestroyable or MeatChopper there 
 ```powershell
 if ($myCurrentGameBoard[30,5] -match "Wall","WallDestroyable","MeatChopper")
 {
-	"Cant move through a $($myCurrentGameBoard[15,15])"
+	"Can`t move"
 }
 else 
 {
-	"A $($myCurrentGameBoard[15,15]) there, let's move"
+	"Let's move"
 }
 ```
 
 
-* To access all game elements you can use Get-GameElementCollection cmdlet.
-Get-GameElementCollection capable to return all possible game elements and them coordinates represented as a collection of (X,Y) points.
-You have to specify required elements collection via -Element parameter.
-Command will return a collection of all x,y points for all given elements.
-By analyzing a given collection you will get inside about how many elements of a given type gameboard contains and where they are located.
-For instance:
+* To access all game elements you can use **`Get-GameElementCollection`** cmdlet.
+**`Get-GameElementCollection`** capable to return all possible game elements and their coordinates represented as a collection of (X,Y) points.    
+You must specify/choose target output collection utilzing **`-Element`** cmdlet parameter.  
+Command returns a collection of (X,Y) points for all elements.  
+By analyzing a given output collection you can get inside about elements count/ coordinates within gameboard. For instance:
 
-Let's find our bomberman
-$myBoardString = Get-GameBoardRawString 
-$myBomber = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Bomberman
-$myBomber
-
-Let's count all the walls in the game
+  * Your Bomberman
+  ```powershell
+  $myBoardString = Get-GameBoardRawString 
+  $myBomber = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Bomberman
+  $myBomber
+  ```
+  
+  * All walls
+  ```powershell
 $AllWalls = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Wall
 $AllWalls.Count
+```
 
-To find other bombermans position
+  * To find other bombermans position
+  ```powershell
 $badGuys = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBomberman
 $badGuys.Count
 $badGuys[0]
 $badGuys[1]
 $badGuys[2]
+```
 
-To be aware of placed enemies bombs
+  * Bombs
+  ```powershell
 $takeCare = Get-GameElementCollection -GameBoardRawString $myBoardString -Element OtherBombBomberman
 $takeCare[0]
+```
