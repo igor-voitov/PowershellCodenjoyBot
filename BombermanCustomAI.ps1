@@ -3,24 +3,66 @@
 
 while ($true)
 {
-	Invoke-GameAction -BombermanAction $(Get-Random("act", "left", "right", "up", "down"))
+	
+	$myBoardString = Get-GameBoardRawString 
+	$myCurrentGameBoard = Get-GameBoardElementArray -GameBoardRawString $myBoardString
+
+	$myBomber = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Bomberman
+
+	# X,Y of myBomber
+	$x = $myBomber[0][0]
+	$y = $myBomber[0][1]
+
+
+	# Place bomb
+
+	Measure-Command {Invoke-GameAction-rev205 -BombermanAction act}
+
+	Invoke-GameAction-rev205 -BombermanAction act
+
+	# Get out of boom aray
+	if ($myCurrentGameBoard[($x+1),($y)] -notmatch "Wall","WallDestroyable")
+	{
+		Invoke-GameAction-rev205 -BombermanAction right
+	}
+	if ($myCurrentGameBoard[($x-1),($y)] -notmatch "Wall","WallDestroyable")
+	{
+		Invoke-GameAction-rev205 -BombermanAction left
+	}
+	if ($myCurrentGameBoard[($x),($y+1)] -notmatch "Wall","WallDestroyable")
+	{
+		Invoke-GameAction-rev205 -BombermanAction up
+	}
+	if ($myCurrentGameBoard[($x),($y-1)] -notmatch "Wall","WallDestroyable")
+	{
+		Invoke-GameAction-rev205 -BombermanAction down
+	}
+
+
+
 }
 
 
-while ($true)
-{
+while ($true) {
+	Invoke-GameAction -BombermanAction left
+	# Start-Sleep -Milliseconds 500
+}
+
+
+
+# realtime consile GUI
+while ($true) {
 	Get-GameBoardRawString | Show-GameBoardCharArray
 	Clear-Host
 }
 
 
-$myCurrentGameBoard = Get-GameBoardElementArray -GameBoardRawString $myBoardString
-$myCurrentGameBoard[30,5]
 
 
-$myBoardString = Get-GameBoardRawString 
-$myBomber = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Bomberman
-$myBomber
+
+
+
+
 
 $AllWalls = Get-GameElementCollection -GameBoardRawString $myBoardString -Element Wall
 $AllWalls.Count

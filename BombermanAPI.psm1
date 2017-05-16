@@ -1,6 +1,7 @@
 ﻿
 #[URI]$Global:BombermanURI = "ws://tetrisj.jvmhost.net:12270/codenjoy-contest/ws?user=donNetClient@dot.net"
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
+[string]$Global:BombermanAction = Get-Random("act, left","act, right","act, up","act, down")
 
 function Invoke-GameAction {
 [CmdletBinding()]
@@ -75,6 +76,88 @@ End
 	$ClientWebSocket.Dispose()
 }
 }
+
+function Start-BombermanSessionWorker {
+[CmdletBinding()]
+[Alias()]
+
+Param
+()
+
+Begin
+{
+	# Open websocket connection 
+	$ClientWebSocket = New-Object System.Net.WebSockets.ClientWebSocket
+	$CancellationToken = New-Object System.Threading.CancellationToken
+
+	$ConnectAsync = $ClientWebSocket.ConnectAsync($Global:BombermanURI, $CancellationToken)                                                  
+	
+	$myCustomTimeout = New-TimeSpan -Seconds 2
+	$myActionStartTime = Get-Date
+
+	While (!$ConnectAsync.IsCompleted) 
+	{ 
+		$TimeTaken = (Get-Date) - $myActionStartTime
+		If ($TimeTaken -gt $myCustomTimeout) 
+			{
+				Write-Warning ("Warning: ConnectAsync ID" + $ConnectAsync.Id.ToString() + " taking longer than " + ($myCustomTimeout.seconds) +" seconds.")
+				Return
+			}
+		Start-Sleep -Milliseconds 100 
+	}
+		
+	Write-Verbose ("ConnectAsync ID " + $ConnectAsync.Id.ToString() + " status: " + ($ConnectAsync.Status))
+}
+Process
+{
+	
+	# Send websocket message
+	
+	# This enumeration of strings which game server able to accept and covert into game action 
+	$PossibleActionsEnum = 	"act","left","right","up","down","act, left","act, right","act, up","act, down","left, act","right, act","up, act","down, act"
+
+	[int]$verboseCounter = 0 
+
+	# Infinite loop constatly checks $Global:BombermanAction variable value and sends content to game server 
+	While ($true)
+	{
+		
+		# Checks wether it is okay message
+		If ($Global:BombermanAction -in $PossibleActionsEnum)
+		{
+			# Actually performing websocket SendAsync method 
+			$OutgoingBufferArray = [System.Text.Encoding]::UTF8.GetBytes($Global:BombermanAction)
+			$OutgoingData = New-Object System.ArraySegment[byte]  -ArgumentList @(,$OutgoingBufferArray)
+			$SendAsync = $ClientWebSocket.SendAsync($OutgoingData, [System.Net.WebSockets.WebSocketMessageType]::Text, [System.Boolean]::TrueString, $CancellationToken)
+			Start-Sleep -Milliseconds 1000	
+			
+			# Just verbose troubleshoot data
+			Write-Verbose ("SendAsync performed $($verboseCounter) times")
+			Write-Verbose ("Status: $($SendAsync.Status)")
+			$verboseCounter++
+			
+			# Free up object resources 
+			$SendAsync.Dispose()
+		}
+		
+		# Notification about incorrect outgoing message.
+		Else
+		{
+			Write-Warning ("Game action may not be proccessed. Try one of the following: ")
+			$PossibleActionsEnum.ForEach({Write-Warning $_})
+			Start-Sleep -Milliseconds 1000	
+		}
+		
+	}
+	
+}
+End
+{
+	$ClientWebSocket.Abort()
+	$ClientWebSocket.Dispose()
+}
+}
+
 
 function Get-GameBoardRawString {
 [CmdletBinding()]
@@ -158,7 +241,7 @@ Param
                 ValueFromPipelineByPropertyName=$true, 
                 Position=0)]
     [ValidateNotNullOrEmpty()]
-	[ValidateLength(1094,2000)]
+	[ValidateLength(1090,2000)]
     [string]$GameBoardRawString
 )
 
@@ -199,7 +282,7 @@ Param
                 ValueFromPipelineByPropertyName=$true, 
                 Position=0)]
     [ValidateNotNullOrEmpty()]
-	[ValidateLength(1094,2000)]
+	[ValidateLength(1090,2000)]
     [string]$GameBoardRawString
 
 )
@@ -238,7 +321,7 @@ Param
                 ValueFromPipelineByPropertyName=$true, 
                 Position=0)]
     [ValidateNotNullOrEmpty()]
-	[ValidateLength(1094,2000)]
+	[ValidateLength(1090,2000)]
     [string]$GameBoardRawString
 )
 Begin
@@ -278,7 +361,7 @@ Param
                 ValueFromPipelineByPropertyName=$true, 
                 Position=0)]
     [ValidateNotNullOrEmpty()]
-	[ValidateLength(1094,2000)]
+	[ValidateLength(1090,2000)]
     [string]$GameBoardRawString
 
 )
@@ -428,10 +511,10 @@ Param
                 ValueFromPipelineByPropertyName=$true, 
                 Position=0)]
     [ValidateNotNullOrEmpty()]
-	[ValidateLength(1094,2000)]
+	[ValidateLength(1090,2000)]
     [string]$GameBoardRawString,
 
-	# [string]GameBoardRawString
+	# [string]Element
     [Parameter(Mandatory=$true, 
                Position=1)]
     [ValidateNotNullOrEmpty()]
@@ -663,25 +746,25 @@ End
 {
 	switch ($Element)
 	{
-	"Bomberman" {Return $BombermanCollection}
-	"BombBomberman" {Return $BombBombermanCollection}
-	"DeadBomberman"{Return $DeadBombermanCollection}
-	"OtherBomberman"{Return $OtherBombermanCollection}
-	"OtherBombBomberman"{Return $OtherBombBombermanCollection}
-	"OtherDeadBomberman"{Return $OtherDeadBombermanCollection}
-	"BombTimer5"{Return $BombTimer5Collection}
-	"BombTimer4"{Return $BombTimer4Collection}
-	"BombTimer3"{Return $BombTimer3Collection}
-	"BombTimer2"{Return $BombTimer2Collection}
-	"BombTimer1"{Return $BombTimer1Collection}
-	"Boom"{Return $BoomCollection}
-	"Wall"{Return $WallCollection}
-	"WallDestroyable"{Return $WallDestroyableCollection}
-	"DestroyedWall"{Return $DestroyedWallCollection}
-	"MeatChopper"{Return $MeatChopperCollection}
-	"DeadMeatChopper"{Return $DeadMeatChopperCollection}
-	"Space"{Return $SpaceCollection}
-    Default {Return}
+	"Bomberman" {Return , $BombermanCollection}
+	"BombBomberman" {Return , $BombBombermanCollection}
+	"DeadBomberman"{Return , $DeadBombermanCollection}
+	"OtherBomberman"{Return , $OtherBombermanCollection}
+	"OtherBombBomberman"{Return , $OtherBombBombermanCollection}
+	"OtherDeadBomberman"{Return , $OtherDeadBombermanCollection}
+	"BombTimer5"{Return , $BombTimer5Collection}
+	"BombTimer4"{Return , $BombTimer4Collection}
+	"BombTimer3"{Return , $BombTimer3Collection}
+	"BombTimer2"{Return , $BombTimer2Collection}
+	"BombTimer1"{Return , $BombTimer1Collection}
+	"Boom"{Return , $BoomCollection}
+	"Wall"{Return , $WallCollection}
+	"WallDestroyable"{Return , $WallDestroyableCollection}
+	"DestroyedWall"{Return , $DestroyedWallCollection}
+	"MeatChopper"{Return , $MeatChopperCollection}
+	"DeadMeatChopper"{Return , $DeadMeatChopperCollection}
+	"Space"{Return , $SpaceCollection}
+    Default {Write-Output "Something went wrong."}
 	}
 }
 }

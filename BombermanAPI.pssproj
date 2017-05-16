@@ -31,6 +31,7 @@
     <Compile Include="BombermanAPI.psm1" />
     <Compile Include="BombermanAPI.tests.ps1" />
     <Compile Include="BombermanCustomAI.ps1" />
+    <Compile Include="_temp.ps1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
