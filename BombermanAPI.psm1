@@ -1,231 +1,201 @@
 ﻿
+#default public server URI
 #[URI]$Global:BombermanURI = "ws://tetrisj.jvmhost.net:12270/codenjoy-contest/ws?user=donNetClient@dot.net"
-[URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
-[string]$Global:BombermanAction = Get-Random("act, left","act, right","act, up","act, down")
 
-function Invoke-GameAction {
+#default local server URI
+[URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
+
+function Invoke-GameSync {
 [CmdletBinding()]
-[Alias()]
+[Alias("Move")]
+[OutputType([String])]
 
 Param
 (
-    # Enumeration of the possible bomberman's actions 
-    [Parameter(Mandatory=$true, 
+    # $Global:BombermanAction is the game action to send to server
+    [Parameter(Mandatory=$false, 
                ValueFromPipeline=$true,
                ValueFromPipelineByPropertyName=$true, 
                Position=0)]
-    [ValidateNotNullOrEmpty()]
-    [ValidateSet("act", "left", "right", "up", "down")]
-	[String]$BombermanAction
+	[ValidateSet("wait","act","left","right","up","down","act, left","act, right","act, up","act, down","left, act","right, act","up, act","down, act")]
+	[String]$NextAction = "act, up"
 )
 
 Begin
 {
+	# verbose info
+	Write-Verbose ("`n`n`n Starting new sync")
+	$SyncStartTime = (Get-Date)
+	$SyncTime = (New-TimeSpan -Seconds 0)
+
 	# Open websocket connection 
-	$ClientWebSocket = New-Object System.Net.WebSockets.ClientWebSocket
-	$CancellationToken = New-Object System.Threading.CancellationToken
+	If ($ClientWebSocket.State -ne "Open")
+	{
+		$global:ClientWebSocket = New-Object System.Net.WebSockets.ClientWebSocket
+		$global:CancellationToken = New-Object System.Threading.CancellationToken
+		
+		$ConnectAsync = $ClientWebSocket.ConnectAsync($Global:BombermanURI, $CancellationToken)
+		
+		$myCustomTimeout = New-TimeSpan -Seconds 3
+		$myActionStartTime = Get-Date
 
-	$ConnectAsync = $ClientWebSocket.ConnectAsync($Global:BombermanURI, $CancellationToken)                                                  
-	
-	$myCustomTimeout = New-TimeSpan -Seconds 2
-	$myActionStartTime = Get-Date
-
-	While (!$ConnectAsync.IsCompleted) 
-	{ 
-		$TimeTaken = (get-date) - $myActionStartTime
-		If ($TimeTaken -gt $myCustomTimeout) 
-			{
-				Write-Warning ("Warning: ConnectAsync ID" + $ConnectAsync.Id.ToString() + " taking longer than " + ($myCustomTimeout.seconds) +" seconds.")
-				Return
-			}
-		Start-Sleep -Milliseconds 100 
+		While (!$ConnectAsync.IsCompleted) 
+		{ 
+			$TimeTaken = (get-date) - $myActionStartTime
+			If ($TimeTaken -gt $myCustomTimeout) 
+				{
+					Write-Warning ("Warning: ConnectAsync ID" + $ConnectAsync.Id.ToString() + " taking longer than " + ($myCustomTimeout.seconds) +" seconds.")
+					Return
+				}
+			Start-Sleep -Milliseconds 50 
+		}
+		
+		Write-Verbose ("ConnectAsync ID " + $ConnectAsync.Id.ToString() + " status: " + ($ConnectAsync.Status))
+	}
+	Else 
+	{
+		Write-Verbose ("Websocked already opened")
 	}
 		
-	Write-Verbose ("ConnectAsync ID " + $ConnectAsync.Id.ToString() + " status: " + ($ConnectAsync.Status))
+
+	# verbose info
+	$SyncTime = ((Get-Date) - $SyncStartTime)
+	Write-Verbose ("Synctime after connect $($SyncTime.TotalMilliseconds) Milliseconds " )
 }
+
 Process
 {
-	# Send websocket message
-	$myOutgoingString = $BombermanAction
-	
-	$OutgoingBufferArray = [System.Text.Encoding]::UTF8.GetBytes($myOutgoingString)
-	$OutgoingData = New-Object System.ArraySegment[byte]  -ArgumentList @(,$OutgoingBufferArray)
-	$SendAsync = $ClientWebSocket.SendAsync($OutgoingData, [System.Net.WebSockets.WebSocketMessageType]::Text, [System.Boolean]::TrueString, $CancellationToken)
 		
-	$myCustomTimeout = New-TimeSpan -Seconds 2
-	$myActionStartTime = Get-Date
+	#region Send websocket message
+	Write-Verbose ("----- Sync start. SendCounter: $global:SendCounter ReceiveCounter: $global:ReceiveCounter -------")
 
-	While (!$SendAsync.IsCompleted) 
-	{ 
-		$TimeTaken = (get-date) - $myActionStartTime
-		If ($TimeTaken -gt $myCustomTimeout) 
-			{
-				Write-Warning ("Warning: SendAsync ID" + $SendAsync.Id.ToString() + " taking longer than " + ($myCustomTimeout.seconds) +" seconds.")
-				Return
-			}
-		Start-Sleep -Milliseconds 100 
-	}
-
-	Write-Verbose ("SendAsync ID " + $SendAsync.Id.ToString() + " status: " + ($SendAsync.Status))
-	
-}
-End
-{
-	$SendAsync.Dispose()
-	$ClientWebSocket.Abort()
-	$ClientWebSocket.Dispose()
-}
-}
-
-function Start-BombermanSessionWorker {
-[CmdletBinding()]
-[Alias()]
-
-Param
-()
-
-Begin
-{
-	# Open websocket connection 
-	$ClientWebSocket = New-Object System.Net.WebSockets.ClientWebSocket
-	$CancellationToken = New-Object System.Threading.CancellationToken
-
-	$ConnectAsync = $ClientWebSocket.ConnectAsync($Global:BombermanURI, $CancellationToken)                                                  
-	
-	$myCustomTimeout = New-TimeSpan -Seconds 2
-	$myActionStartTime = Get-Date
-
-	While (!$ConnectAsync.IsCompleted) 
-	{ 
-		$TimeTaken = (Get-Date) - $myActionStartTime
-		If ($TimeTaken -gt $myCustomTimeout) 
-			{
-				Write-Warning ("Warning: ConnectAsync ID" + $ConnectAsync.Id.ToString() + " taking longer than " + ($myCustomTimeout.seconds) +" seconds.")
-				Return
-			}
-		Start-Sleep -Milliseconds 100 
-	}
-		
-	Write-Verbose ("ConnectAsync ID " + $ConnectAsync.Id.ToString() + " status: " + ($ConnectAsync.Status))
-}
-Process
-{
-	
-	# Send websocket message
-	
-	# This enumeration of strings which game server able to accept and covert into game action 
-	$PossibleActionsEnum = 	"act","left","right","up","down","act, left","act, right","act, up","act, down","left, act","right, act","up, act","down, act"
-
-	[int]$verboseCounter = 0 
-
-	# Infinite loop constatly checks $Global:BombermanAction variable value and sends content to game server 
-	While ($true)
+	# Enumeration of strings which game server able to accept and handle as proper bot action 
+	$PossibleActionsEnum = 	"wait","act","left","right","up","down","act, left","act, right","act, up","act, down","left, act","right, act","up, act","down, act"
+				
+	# Check whether it is a proper string or not
+	If ($NextAction -in $PossibleActionsEnum)
 	{
 		
-		# Checks wether it is okay message
-		If ($Global:BombermanAction -in $PossibleActionsEnum)
-		{
-			# Actually performing websocket SendAsync method 
-			$OutgoingBufferArray = [System.Text.Encoding]::UTF8.GetBytes($Global:BombermanAction)
-			$OutgoingData = New-Object System.ArraySegment[byte]  -ArgumentList @(,$OutgoingBufferArray)
-			$SendAsync = $ClientWebSocket.SendAsync($OutgoingData, [System.Net.WebSockets.WebSocketMessageType]::Text, [System.Boolean]::TrueString, $CancellationToken)
-			Start-Sleep -Milliseconds 1000	
-			
-			# Just verbose troubleshoot data
-			Write-Verbose ("SendAsync performed $($verboseCounter) times")
-			Write-Verbose ("Status: $($SendAsync.Status)")
-			$verboseCounter++
-			
-			# Free up object resources 
-			$SendAsync.Dispose()
+		# Actually performing websocket SendAsync method 
+		$OutgoingBufferArray = [System.Text.Encoding]::UTF8.GetBytes($NextAction)
+		$OutgoingData = New-Object System.ArraySegment[byte]  -ArgumentList @(,$OutgoingBufferArray)
+				
+		$SendAsync = $ClientWebSocket.SendAsync($OutgoingData, [System.Net.WebSockets.WebSocketMessageType]::Text, [System.Boolean]::TrueString, $CancellationToken)
+		Start-Sleep -Milliseconds 50
+
+		$Timeout = (New-TimeSpan -Seconds 1)
+		$TaskStartTime = (Get-Date)
+		
+		While (!$SendAsync.IsCompleted) 
+		{ 
+			$TimeTaken = (Get-Date) - $TaskStartTime
+			If ($TimeTaken -gt $Timeout) 
+				{
+					Write-Warning ("Warning: $SendAsync ID" + $SendAsync.Id.ToString() + " taking longer than " + ($Timeout.seconds) +" seconds.")
+					Return
+				}
+			Start-Sleep -Milliseconds 50
 		}
 		
-		# Notification about incorrect outgoing message.
-		Else
-		{
-			Write-Warning ("Game action may not be proccessed. Try one of the following: ")
-			$PossibleActionsEnum.ForEach({Write-Warning $_})
-			Start-Sleep -Milliseconds 1000	
-		}
+		
+		# Just verbose troubleshoot data
+		$global:ACTUALSendCounter++
+		Write-Verbose ("ACTUAL SendAsync performed $($global:ACTUALSendCounter) times")
+		Write-Verbose ("ACTUAL SendAsync Status: $($SendAsync.Status)")
 		
 	}
+		
+	# Notification about incorrect outgoing message.
+	Else
+	{
+		Write-Warning ("Next game action unrecognized. Try one of the following: ")
+		$PossibleActionsEnum.ForEach({Write-Warning $_})
+			
+	}
+		
+	$global:SendCounter++
 	
+	$SyncTime = ((Get-Date) - $SyncStartTime)
+	Write-Verbose ("Synctime after send $($SyncTime.TotalMilliseconds) Milliseconds " )
+		
+	#endregion Send websocket message
+
+
+
+
+
+	#region RECIEVE websocket message 
+		
+	# recieve full websocket message until ReceiveAsync.Result.EndOfMessage will be true
+	[string]$GameBoardRawString = ""
+	[string]$partialGameBoardRawString = ""
+	
+	Do
+	{
+		$IncomingBufferArray = [byte[]] @(,0) * 2000
+		$IncomingData = New-Object System.ArraySegment[byte]  -ArgumentList @(,$IncomingBufferArray)
+		
+		$ReceiveAsync = $ClientWebSocket.ReceiveAsync($IncomingData, $CancellationToken)
+		
+		$Timeout = (New-TimeSpan -Seconds 1)
+		$TaskStartTime = (Get-Date)
+
+		While (!$ReceiveAsync.IsCompleted) 
+		{ 
+			$TimeTaken = ((get-date) - $TaskStartTime)
+			If ($TimeTaken -gt $Timeout) 
+				{
+					Write-Warning ("Warning: $ReceiveAsync ID" + $ReceiveAsync.Id.ToString() + " taking longer than " + ($Timeout.seconds) +" seconds.")
+					Return
+				}
+			Start-Sleep -Milliseconds 100 
+		}
+		
+		
+		$partialGameBoardRawString = [System.Text.Encoding]::UTF8.GetString($IncomingData.Array)
+		$partialGameBoardRawString = ($partialGameBoardRawString -replace "�", "")
+		$GameBoardRawString = $GameBoardRawString + $partialGameBoardRawString.TrimEnd([char]$null)
+		
+		Write-Verbose ("ReceiveAsync ID " + $ReceiveAsync.Id.ToString() + " status: " + ($ReceiveAsync.Status))
+		Write-Verbose ("ReceiveAsync result: Count " + $ReceiveAsync.Result.Count + " EndOfMessage " + $ReceiveAsync.Result.EndOfMessage)
+		Write-Verbose ("Gameboard string lenght is $($GameBoardRawString.Length) " )
+
+		$SyncTime = ((Get-Date) - $SyncStartTime)
+		Write-Verbose ("Synctime after single receive cycle $($SyncTime.TotalMilliseconds) Milliseconds " )
+		
+	}
+	Until ($ReceiveAsync.Result.EndOfMessage)
+		
+	$global:ReceiveCounter++
+	#endregion Recieve websocket message 
+
+	$SyncTime = ((Get-Date) - $SyncStartTime)
+	Write-Verbose ("Synctime after all receives  $($SyncTime.TotalMilliseconds) Milliseconds " )
+	
+	# Aligning send/rcv sync with 1 sec timeframe
+	If ($SyncTime.TotalMilliseconds -lt 900)
+	{
+		$delay = (900 - $SyncTime.TotalMilliseconds)
+		Start-Sleep -Milliseconds $delay
+		Write-Verbose ("Added delay  $($delay) Milliseconds " )
+	}
+	 
 }
 End
 {
-	$ClientWebSocket.Abort()
-	$ClientWebSocket.Dispose()
-}
-}
-
-
-function Get-GameBoardRawString {
-[CmdletBinding()]
-[Alias()]
-[OutputType([String])]
-Param ()
-
-Begin
-{
-	# Open websocket connection 
-	$ClientWebSocket = New-Object System.Net.WebSockets.ClientWebSocket
-	$CancellationToken = New-Object System.Threading.CancellationToken
-
-	$ConnectAsync = $ClientWebSocket.ConnectAsync($Global:BombermanURI, $CancellationToken)                                                  
-	
-	$myCustomTimeout = New-TimeSpan -Seconds 2
-	$myActionStartTime = Get-Date
-
-	While (!$ConnectAsync.IsCompleted) 
-	{ 
-		$TimeTaken = (get-date) - $myActionStartTime
-		If ($TimeTaken -gt $myCustomTimeout) 
-			{
-				Write-Warning ("Warning: ConnectAsync ID" + $ConnectAsync.Id.ToString() + " taking longer than " + ($myCustomTimeout.seconds) +" seconds.")
-				Return
-			}
-		Start-Sleep -Milliseconds 100 
-	}
-		
-	Write-Verbose ("ConnectAsync ID " + $ConnectAsync.Id.ToString() + " status: " + ($ConnectAsync.Status))
-}
-Process
-{
-	# Recieve websocket message 
-	$IncomingBufferArray = [byte[]] @(,0) * 1808
-	$IncomingData = New-Object System.ArraySegment[byte]  -ArgumentList @(,$IncomingBufferArray)
-
-	$ReceiveAsync = $ClientWebSocket.ReceiveAsync($IncomingData, $CancellationToken)
-	$myCustomTimeout = New-TimeSpan -Seconds 2
-	$myActionStartTime = Get-Date
-
-	While (!$ReceiveAsync.IsCompleted) 
-	{ 
-		$TimeTaken = (get-date) - $myActionStartTime
-		If ($TimeTaken -gt $myCustomTimeout) 
-			{
-				Write-Warning ("Warning: ReceiveAsync ID" + $ReceiveAsync.Id.ToString() + " taking longer than " + ($myCustomTimeout.seconds) +" seconds.")
-				Return
-			}
-		Start-Sleep -Milliseconds 100 
-	}
-
-	Write-Verbose ("ReceiveAsync ID " + $ReceiveAsync.Id.ToString() + " status: " + ($ReceiveAsync.Status))
-	Write-Verbose ("ReceiveAsync result: Count " + $ReceiveAsync.Result.Count + " EndOfMessage " + $ReceiveAsync.Result.EndOfMessage)
-
-		
-	$GameBoardRawString = [System.Text.Encoding]::UTF8.GetString($IncomingData.Array)
-	
-
-}
-End
-{
-	
+	# clean up system resources 
+	$SendAsync.Dispose()
 	$ReceiveAsync.Dispose()
-	$ClientWebSocket.Abort()
-	$ClientWebSocket.Dispose()
-	Return [string]$GameBoardRawString
+	#$ClientWebSocket.Abort()
+	#$ClientWebSocket.Dispose()
 	
+	# verbose info
+	Write-Verbose ("----- Sync end. SendCounter: $global:SendCounter ReceiveCounter: $global:ReceiveCounter -------")
+	$SyncTime = ((Get-Date) - $SyncStartTime)
+	Write-Verbose ("Synctime before exit  $($SyncTime.TotalMilliseconds) Milliseconds " )
+	
+	# Function output
+	Return [string]$GameBoardRawString 
 }
 }
 
@@ -241,7 +211,7 @@ Param
                 ValueFromPipelineByPropertyName=$true, 
                 Position=0)]
     [ValidateNotNullOrEmpty()]
-	[ValidateLength(1090,2000)]
+	[ValidateLength(1090,4000)]
     [string]$GameBoardRawString
 )
 

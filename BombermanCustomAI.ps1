@@ -1,5 +1,23 @@
-﻿Import-Module .\BombermanAPI.psm1 -Force
+﻿#region Quickstart
+
+Import-Module .\BombermanAPI.psm1 -Force
+
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
+ 
+while ($true) 
+{
+	
+	#Clear-Host
+	#Measure-Command {Invoke-GameSync}
+	Invoke-GameSync | Show-GameBoardRawGrid
+	
+}
+
+#endregion
+
+#region 
+
+
 
 while ($true)
 {
@@ -45,7 +63,6 @@ while ($true)
 
 while ($true) {
 	Invoke-GameAction -BombermanAction left
-	# Start-Sleep -Milliseconds 500
 }
 
 
