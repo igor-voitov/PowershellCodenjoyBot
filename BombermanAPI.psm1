@@ -5,10 +5,11 @@
 #default local server URI
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
 
+#basic functions
+
 function Invoke-GameSync {
 [CmdletBinding()]
 [Alias("Move")]
-[OutputType([String])]
 
 Param
 (
@@ -18,7 +19,7 @@ Param
                ValueFromPipelineByPropertyName=$true, 
                Position=0)]
 	[ValidateSet("wait","act","left","right","up","down","act, left","act, right","act, up","act, down","left, act","right, act","up, act","down, act")]
-	[String]$NextAction = "act, up"
+	[String]$NextAction = "wait"
 )
 
 Begin
@@ -194,8 +195,7 @@ End
 	$SyncTime = ((Get-Date) - $SyncStartTime)
 	Write-Verbose ("Synctime before exit  $($SyncTime.TotalMilliseconds) Milliseconds " )
 	
-	# Function output
-	Return [string]$GameBoardRawString 
+	[string]$Global:CurrentGameBoardRawString = [string]$GameBoardRawString
 }
 }
 
@@ -206,13 +206,13 @@ function Show-GameBoardRawGrid {
 Param 
 (
 	# [string]GameBoardRawString
-    [Parameter(Mandatory=$true, 
+    [Parameter(Mandatory=$false, 
                 ValueFromPipeline=$true,
                 ValueFromPipelineByPropertyName=$true, 
                 Position=0)]
     [ValidateNotNullOrEmpty()]
 	[ValidateLength(1090,4000)]
-    [string]$GameBoardRawString
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
 )
 
 Begin
@@ -739,6 +739,865 @@ End
 }
 }
   
+#helper functions
+
+#позиция моего бомбера на доске
+function getBomberman {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $Bomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element Bomberman
+		$BombBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombBomberman
+		$DeadBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element DeadBomberman
+		$myBomber = $Bomberman + $BombBomberman + $DeadBomberman
+    }
+    End
+    {
+		Return , $myBomber
+    }
+}
+
+#позиции всех остальных бомберов (противников) на доске
+function getOtherBombermans {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $OtherBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element OtherBomberman
+		$OtherBombBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element OtherBombBomberman
+		$OtherDeadBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element OtherDeadBomberman
+		$OtherBombers = $OtherBomberman + $OtherBombBomberman + $OtherDeadBomberman
+    }
+    End
+    {
+		Return , $OtherBombers
+    }
+}
+
+#жив ли мой бомбер
+function isMyBombermanDead {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $DeadBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element DeadBomberman
+		If ($DeadBomberman.Count -eq 1) {Return $true}
+		Else {Return $false}
+    }
+    End
+    {
+		
+    }
+}
+
+
+#находится ли в позиции  x, y заданный элемент?
+#находится ли в позиции  x, y что-нибудь из заданного набора
+function isAt {
+[CmdletBinding()]
+[Alias()]
+Param
+(
+	# [string]GameBoardRawString
+    [Parameter(Mandatory=$false, 
+                ValueFromPipeline=$true,
+                ValueFromPipelineByPropertyName=$true,
+				ParameterSetName='by single element')]
+	[Parameter(Mandatory=$false, 
+                ValueFromPipeline=$true,
+                ValueFromPipelineByPropertyName=$true,
+				ParameterSetName='by array of elements')]
+    [ValidateNotNullOrEmpty()]
+	[ValidateLength(1090,2000)]
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString,
+
+	# [int]x
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=0)]
+	[Parameter(Mandatory=$true,
+				ParameterSetName='by array of elements',
+                Position=0)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$X,
+
+	# [int]y
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=1)]
+	[Parameter(Mandatory=$true,
+				ParameterSetName='by array of elements',
+                Position=1)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$Y,
+	
+	
+	# [string]Element
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=2)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet(
+		"Bomberman",
+		"BombBomberman",
+		"DeadBomberman",
+		"OtherBomberman",
+		"OtherBombBomberman",
+		"OtherDeadBomberman",
+		"BombTimer5",
+		"BombTimer4",
+		"BombTimer3",
+		"BombTimer2",
+		"BombTimer1",
+		"Boom",
+		"Wall",
+		"WallDestroyable",
+		"DestroyedWall",
+		"MeatChopper",
+		"DeadMeatChopper",
+		"Space")]
+    [string]$Element,
+		
+	
+	# [string[]]Elements
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by array of elements',
+                Position=2)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet(
+		"Bomberman",
+		"BombBomberman",
+		"DeadBomberman",
+		"OtherBomberman",
+		"OtherBombBomberman",
+		"OtherDeadBomberman",
+		"BombTimer5",
+		"BombTimer4",
+		"BombTimer3",
+		"BombTimer2",
+		"BombTimer1",
+		"Boom",
+		"Wall",
+		"WallDestroyable",
+		"DestroyedWall",
+		"MeatChopper",
+		"DeadMeatChopper",
+		"Space")]
+    [string[]]$Elements
+
+)
+Begin
+{
+}
+Process
+{
+	
+	switch ($PsCmdlet.ParameterSetName)
+    {
+		'by single element'
+		{
+			$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString
+			If ($GameBoard[($x),($y)] -match $Element) {Return $true}
+			Else {Return $false}
+		}
+
+		'by array of elements'
+		{
+			$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString
+			If ($GameBoard[($x),($y)] -iin $Elements) {Return $true}
+			Else {Return $false}
+		}
+    
+	} 
+	
+	
+}
+End
+{
+
+}
+}
+
+#examples
+isAt -X 32 -Y 15 -Element MeatChopper
+isAt 32 15 Space,Boom,BombTimer1,Wall
+
+
+#есть ли вокруг клеточки с координатой x,y заданный элемент
+function isNear {
+[CmdletBinding()]
+[Alias()]
+Param
+(
+	# [string]GameBoardRawString
+    [Parameter(Mandatory=$false, 
+                ValueFromPipeline=$true,
+                ValueFromPipelineByPropertyName=$true,
+				ParameterSetName='by single element')]
+    [ValidateNotNullOrEmpty()]
+	[ValidateLength(1090,2000)]
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString,
+
+	# [int]x
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=0)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$X,
+
+	# [int]y
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=1)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$Y,
+	
+	
+	# [string]Element
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=2)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet(
+		"Bomberman",
+		"BombBomberman",
+		"DeadBomberman",
+		"OtherBomberman",
+		"OtherBombBomberman",
+		"OtherDeadBomberman",
+		"BombTimer5",
+		"BombTimer4",
+		"BombTimer3",
+		"BombTimer2",
+		"BombTimer1",
+		"Boom",
+		"Wall",
+		"WallDestroyable",
+		"DestroyedWall",
+		"MeatChopper",
+		"DeadMeatChopper",
+		"Space")]
+    [string]$Element
+
+)
+Begin
+{
+}
+Process
+{
+	
+	$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString
+	If 
+	(
+		($GameBoard[($x+1),($y)]),
+		($GameBoard[($x-1),($y)]),
+		($GameBoard[($x),($y+1)]),
+		($GameBoard[($x),($y-1)]) -contains $Element
+	) 
+	{Return $true} 
+	Else
+	{Return $false}
+	
+
+
+	
+	
+	
+}
+End
+{
+
+}
+}
+
+#examples
+isNear -x 29 -y 31 -Element MeatChopper
+
+
+#есть ли препятствие в клеточке x, y
+function isBarrierAt {
+[CmdletBinding()]
+[Alias()]
+Param
+(
+	# [string]GameBoardRawString
+    [Parameter(Mandatory=$false, 
+                ValueFromPipeline=$true,
+                ValueFromPipelineByPropertyName=$true,
+				ParameterSetName='by single element')]
+    [ValidateNotNullOrEmpty()]
+	[ValidateLength(1090,2000)]
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString,
+
+	# [int]x
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=0)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$X,
+
+	# [int]y
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=1)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$Y
+)
+Begin
+{
+}
+Process
+{
+	
+	$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString
+	If ($GameBoard[($x),($y)] -iin "Wall","WallDestroyable") {Return $true}
+	Else {Return $false}
+	
+}
+End
+{
+
+}
+}
+
+#examples
+isBarrierAt -X 32 -Y 32
+
+#сколько элементов заданного типа есть вокруг клетки с x, y
+#int countNear(int x, int y, Element element)
+function countNear {
+[CmdletBinding()]
+[Alias()]
+Param
+(
+	# [string]GameBoardRawString
+    [Parameter(Mandatory=$false, 
+                ValueFromPipeline=$true,
+                ValueFromPipelineByPropertyName=$true,
+				ParameterSetName='by single element')]
+    [ValidateNotNullOrEmpty()]
+	[ValidateLength(1090,2000)]
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString,
+
+	# [int]x
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=0)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$X,
+
+	# [int]y
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=1)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$Y,
+	
+	
+	# [string]Element
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=2)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet(
+		"Bomberman",
+		"BombBomberman",
+		"DeadBomberman",
+		"OtherBomberman",
+		"OtherBombBomberman",
+		"OtherDeadBomberman",
+		"BombTimer5",
+		"BombTimer4",
+		"BombTimer3",
+		"BombTimer2",
+		"BombTimer1",
+		"Boom",
+		"Wall",
+		"WallDestroyable",
+		"DestroyedWall",
+		"MeatChopper",
+		"DeadMeatChopper",
+		"Space")]
+    [string]$Element
+
+)
+Begin
+{
+}
+Process
+{
+	
+	$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString
+	
+	$counter = 0
+	$nearElements = ($GameBoard[($x+1),($y)]),($GameBoard[($x-1),($y)]),($GameBoard[($x),($y+1)]),($GameBoard[($x),($y-1)])
+	foreach ($currentElement in $nearElements )
+	{
+		if ($currentElement -match $Element) {$counter++}
+	}
+		
+}
+End
+{
+	Return [int]$counter
+}
+}
+
+#examples
+countNear -X 16 -Y 15 -Element Wall
+
+
+#возвращает элемент в текущей клетке
+Element getAt(int x, int y)
+
+function getAt {
+[CmdletBinding()]
+[Alias()]
+Param
+(
+	# [string]GameBoardRawString
+    [Parameter(Mandatory=$false, 
+                ValueFromPipeline=$true,
+                ValueFromPipelineByPropertyName=$true,
+				ParameterSetName='by single element')]
+    [ValidateNotNullOrEmpty()]
+	[ValidateLength(1090,2000)]
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString,
+
+	# [int]x
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=0)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$X,
+
+	# [int]y
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=1)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$Y
+)
+Begin
+{
+}
+Process
+{
+	
+	Return (Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString)[($x),($y)]
+	
+
+
+}
+End
+{
+
+}
+}
+
+getAt -X 0 -Y 0
+
+# возвращает размер доски
+function boardSize {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        Return ([math]::Sqrt(($GameBoardRawString.Substring(6)).Length))
+    }
+    End
+    {
+		
+    }
+}
+
+# координаты всех объектов препятствующих движению
+function getBarriers {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $Wall = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element Wall
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element WallDestroyable
+		
+		$Barriers = $Wall + $WallDestroyable
+    }
+    End
+    {
+		Return , $Barriers
+    }
+}
+
+
+# координаты всех чудиков которые могут убить бомбера
+# Collection<Point> getMeatChoppers()
+function getMeatChoppers {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $MeatChopper = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element MeatChopper
+
+    }
+    End
+    {
+		Return , $MeatChopper
+    }
+}
+
+
+# координаты всех бетонных стен
+#Collection<Point> getWalls()
+function getWalls {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $Walls = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element Wall
+		
+    }
+    End
+    {
+		Return , $Walls
+    }
+}
+
+
+# координаты всех кирпичных стен (их можно разрушать)
+# Collection<Point> getDestroyWalls()
+function getDestroyWalls {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element WallDestroyable
+    }
+    End
+    {
+		Return , $WallDestroyable
+    }
+}
+
+
+# координаты всех бомб
+# Collection<Point> getBombs()
+function getBombs {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $BombBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombBomberman
+		$BombTimer1 = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer1
+		$BombTimer2 = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer2
+		$BombTimer3 = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer3
+		$BombTimer4 = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer4
+		$BombTimer5 = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer5
+		$OtherBombBomberman = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element OtherBombBomberman
+		
+		$Bombs = $BombBomberman + $BombTimer1 + $BombTimer2 + $BombTimer3 + $BombTimer4 + $BombTimer5 + $OtherBombBomberman
+
+		<#
+		
+		$Bombs = New-Object System.Collections.Generic.List[System.Object]
+		if ($BombBomberman.Count -gt 0) {$Bombs.Add($BombBomberman)}
+		if ($BombTimer1.Count -gt 0) {$Bombs.Add($BombTimer1)}
+		if ($BombTimer2.Count -gt 0) {$Bombs.Add($BombTimer2)}
+		if ($BombTimer3.Count -gt 0) {$Bombs.Add($BombTimer3)}
+		if ($BombTimer4.Count -gt 0) {$Bombs.Add($BombTimer4)}
+		if ($BombTimer5.Count -gt 0) {$Bombs.Add($BombTimer5)}
+		if ($OtherBombBomberman.Count -gt 0) {$Bombs.Add($OtherBombBomberman)}
+
+
+		#>
+
+
+
+			
+		
+    }
+    End
+    {
+		Return , $Bombs
+    }
+}
+
+#координаты потенциально опасных мест, где бомба может разорваться. (бомба взрывается на N {решим перед началом игры} клеточек в стороны: вверх, вниз, вправо, влево)
+#Collection<Point> getFutureBlasts()
+
+function getFutureBlasts {
+[CmdletBinding()]
+[Alias()]
+Param
+(
+	# [string]GameBoardRawString
+    [Parameter(Mandatory=$false, 
+                ValueFromPipeline=$true,
+                ValueFromPipelineByPropertyName=$true,
+				ParameterSetName='by single element')]
+    [ValidateNotNullOrEmpty()]
+	[ValidateLength(1090,2000)]
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+
+)
+Begin
+{
+}
+Process
+{
+	
+	Invoke-GameSync -NextAction act;
+	[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	Show-GameBoardRawGrid
+
+	
+	$FutureBlasts = New-Object System.Collections.Generic.List[System.Object]
+	$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString
+	
+	#get all bombs coordinates
+	$allBombs = getBombs
+	
+	# check every bomb's potenial blast area
+	foreach ($bomb in $allBombs)
+	{
+		# get current bomb's x,y
+		$x = $bomb[0]
+		$y = $bomb[1]
+
+		#check right direction 
+		if ($GameBoard[($x+1),($y)] -inotin "Wall","WallDestroyable")
+		{
+			$FutureBlast = (($x+1),$y)
+			$FutureBlasts.Add($FutureBlast)
+
+			if ($GameBoard[($x+2),($y)] -inotin "Wall","WallDestroyable")
+			{
+				$FutureBlast = (($x+2),$y)
+				$FutureBlasts.Add($FutureBlast)
+				if ($GameBoard[($x+3),($y)] -inotin "Wall","WallDestroyable")
+				{
+					$FutureBlast = (($x+3),$y)
+					$FutureBlasts.Add($FutureBlast)
+				}
+			}
+		
+		}
+
+		#check left direction 
+		if ($GameBoard[($x-1),($y)] -inotin "Wall","WallDestroyable")
+		{
+			$FutureBlast = (($x-1),$y)
+			$FutureBlasts.Add($FutureBlast)
+
+			if ($GameBoard[($x-2),($y)] -inotin "Wall","WallDestroyable")
+			{
+				$FutureBlast = (($x-2),$y)
+				$FutureBlasts.Add($FutureBlast)
+				if ($GameBoard[($x-3),($y)] -inotin "Wall","WallDestroyable")
+				{
+					$FutureBlast = (($x-3),$y)
+					$FutureBlasts.Add($FutureBlast)
+				}
+			}
+		
+		}
+
+
+		#check up direction 
+		if ($GameBoard[($x),($y+1)] -inotin "Wall","WallDestroyable")
+		{
+			$FutureBlast = (($x),($y+1))
+			$FutureBlasts.Add($FutureBlast)
+
+			if ($GameBoard[($x),($y+2)] -inotin "Wall","WallDestroyable")
+			{
+				$FutureBlast = (($x),($y+2))
+				$FutureBlasts.Add($FutureBlast)
+				if ($GameBoard[($x),($y+3)] -inotin "Wall","WallDestroyable")
+				{
+					$FutureBlast = (($x),($y+3))
+					$FutureBlasts.Add($FutureBlast)
+				}
+			}
+		
+		}
+
+
+		#check down direction 
+		if ($GameBoard[($x),($y-1)] -inotin "Wall","WallDestroyable")
+		{
+			$FutureBlast = (($x),($y-1))
+			$FutureBlasts.Add($FutureBlast)
+
+			if ($GameBoard[($x),($y-2)] -inotin "Wall","WallDestroyable")
+			{
+				$FutureBlast = (($x),($y-2))
+				$FutureBlasts.Add($FutureBlast)
+				if ($GameBoard[($x),($y-3)] -inotin "Wall","WallDestroyable")
+				{
+					$FutureBlast = (($x),($y-3))
+					$FutureBlasts.Add($FutureBlast)
+				}
+			}
+		
+		}
+
+	}
+
+	
+	
+	
+}
+End
+{
+	 Return , $FutureBlasts
+}
+}
          
 Export-ModuleMember -Function *
 

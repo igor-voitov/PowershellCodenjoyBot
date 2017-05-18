@@ -1,7 +1,16 @@
 ﻿# QuickStart
+# 1. Import module into your PS session
 Import-Module .\BombermanAPI.psm1 -Force
+
+# 2. Set connection URI
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
-while ($true) {Invoke-GameSync}
+
+# 3. Start your Bomberman
+while ($true) 
+{
+	move $(Random("act", "left", "right", "up", "down"))
+}
+
 
 
 # Basics
@@ -10,25 +19,29 @@ while ($true) {Invoke-GameSync}
 Invoke-GameSync -NextAction 'act, down'
 # or pipe your action to Invoke-GameSync
 'act, up' | Invoke-GameSync
-# or use 'move' alias
-move up
-# to do nothing and to receive gameboard situation 
-Invoke-GameSync -NextAction wait
+# or use 'move' alias for Invoke-GameSync command
+move "up"
+move "left, act"
+
+
+
  
 
 # make console GUI
 while ($true)
 {
 	Clear-Host
-	Invoke-GameSync | Show-GameBoardRawGrid
+	Invoke-GameSync
+	Show-GameBoardRawGrid
 }
 
-# You can pipe current gameboard string into another function's input 
+# You can pipe Invoke-GameSync output gameboard string into another function's input 
 Invoke-GameSync | Get-GameBoardCharArray
 
 # You can store current gameboard string into variable and specify it within another function's parameter later
 $GameString = Invoke-GameSync
 Show-GameBoardCharArray -GameBoardRawString $GameString
+Show-GameBoardCharArray($GameString)
 
 # To start analyze gameboard
 $GameString = Invoke-GameSync 
@@ -45,6 +58,8 @@ $badGuys[0]
 
 $beware = Get-GameElementCollection -GameBoardRawString $GameString -Element OtherBombBomberman
 $beware[0]
+
+
 
 
 
@@ -91,7 +106,7 @@ while ($true)
 		Continue
 	}
 	
-	# Looking for any free space to move
+	# Look around for any free space to move
 	if ($GameBoard[($x+1),($y)] -match "Space")
 	{
 		$myNextAction = "right"
@@ -125,6 +140,11 @@ while ($true)
 
 
 
+while ($true) 
+{
+	move -NextAction $(Random("act", "left", "right", "up", "down"))
+	Show-GameBoardRawGrid
+}
 
 
 
