@@ -260,46 +260,56 @@ countNear -X 16 -Y 15 -Element Wall
 ```powershell
 getAt -X 15 -Y 16
 ```
+
 * возвращает размер доски
 `int boardSize()`
 ```powershell
 boardSize
 ```
+
 * координаты всех объектов препятствующих движению
 `Collection<Point> getBarriers() `
 ```powershell
 getBarriers
 ```
+
 * координаты всех чудиков которые могут убить бомбера
 `Collection<Point> getMeatChoppers()`
 ```powershell
 getMeatChoppers
 ```
+
 * координаты всех бетонных стен
 `Collection<Point> getWalls()`
 ```powershell
 getWalls
 ```
+
 * координаты всех кирпичных стен (их можно разрушать)
 `Collection<Point> getDestroyWalls()`
 ```powershell
 getDestroyWalls
 ```
+
 * Координаты всех бомб. 
 `Collection<Point> getBombs()`
 ```powershell
 getBombs
 ```
+
 * координаты потенциально опасных мест, где бомба может разорваться. (бомба взрывается на N {решим перед началом игры} клеточек в стороны: вверх, вниз, вправо, влево)
 `Collection<Point> getFutureBlasts()`
 ```powershell
 `getFutureBlasts`
 ```
+
 * converts index within raw gamestring into gameboard x,y points 
 ```powershell
 strpos2xy
 ```
+
 * converts gameboard x,y points into index within raw gamestring
 ```powershell
 xy2strpos
 ```
+
