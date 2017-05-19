@@ -40,7 +40,9 @@ while ($true)
 
  ### Basics function usage/how-to
 
-* **`Invoke-GameSync`** is a core function in order to play the game. **`Invoke-GameSync`** functions execution takes a minimum of 1 second (1 game turn). By default, `-NextAction` parameter value is `"wait"`, therefore by calling function w/o `-NextAction` parameter you will make no action except gameboard synchronization.  
+* **`Invoke-GameSync`** is a core function in order to play the game.  
+**`Invoke-GameSync`** functions execution takes a minimum of 1 second (1 game turn).   
+By default, `-NextAction` parameter value is `"wait"`, therefore by calling function w/o `-NextAction` parameter you will make no action except gameboard synchronization.    
 To make a move(and/or act) specify this in the `-NextAction` parameter
 ```powershell
 Invoke-GameSync -NextAction 'act, down'
