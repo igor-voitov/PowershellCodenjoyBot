@@ -297,10 +297,10 @@ getDestroyWalls
 getBombs
 ```
 
-* координаты потенциально опасных мест, где бомба может разорваться. (бомба взрывается на N {решим перед началом игры} клеточек в стороны: вверх, вниз, вправо, влево)
+* координаты потенциально опасных мест, где бомба может разорваться.
 `Collection<Point> getFutureBlasts()`
 ```powershell
-`getFutureBlasts`
+getFutureBlasts
 ```
 
 * converts index within raw gamestring into gameboard x,y points 
