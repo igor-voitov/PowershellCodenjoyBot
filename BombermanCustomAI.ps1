@@ -16,7 +16,11 @@ while ($true)
 
 # Basics function usage/how-to
 
-# to make a move use Invoke-GameSync function's -NextAction parameter
+# Invoke-GameSync is a core function in order to play the game
+# Invoke-GameSync functions execution takes a minimum of 1 second (1 game turn)
+# by default, -NextAction parameter value is "wait", 
+# therefore by calling function w/o -NextAction parameter you will make no action except gameboard synchronization
+# to make a move(and/or act) specify this in the -NextAction parameter
 Invoke-GameSync -NextAction 'act, down'
 # or pipe your action to Invoke-GameSync
 'act, up' | Invoke-GameSync
@@ -24,12 +28,11 @@ Invoke-GameSync -NextAction 'act, down'
 move "up"
 move "left, act"
  
-# to get current gameboard and to show it within console output
+# to view gameboard in console output use Show-GameBoardRawGrid
 Invoke-GameSync
 Show-GameBoardRawGrid
 
-
-# to make a console GUI (show current gameboard every 1sec)
+# to view gameboard in console output continiously use ininite loop
 while ($true)
 {
 	Clear-Host
@@ -37,59 +40,82 @@ while ($true)
 	Show-GameBoardRawGrid
 }
 
-# You can pipe Invoke-GameSync output gameboard string into another function's input 
-Get-GameBoardCharArray
+# Anytime when you call the Invoke-GameSync function, it updates [string]$Global:CurrentGameBoardRawString variable with current gameboard string
+# Call/Use $Global:CurrentGameBoardRawString if you need to access raw gameboard string
+# For instance, you can store current gameboard string into your variable and use that string with another function later
+$myGameString = $Global:CurrentGameBoardRawString
+Show-GameBoardCharArray -GameBoardRawString $myGameString
+Show-GameBoardCharArray($myGameString)
+Show-GameBoardCharArray $myGameString
+$myGameString | Show-GameBoardCharArray
 
-# You can store current gameboard string into variable and specify it within another function's parameter later
-$GameString = Invoke-GameSync
-Show-GameBoardCharArray -GameBoardRawString $GameString
-Show-GameBoardCharArray($GameString)
+# Get-GameBoardElementArray gives you two-dimensional array which represents gameboard and contains game CHARS 
+Invoke-GameSync 
+$GameBoard = Get-GameBoardCharArray
 
-# To start analyze gameboard
-$GameString = Invoke-GameSync 
-$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameString
+# Get-GameBoardElementArray function gives you two-dimensional array which represents gameboard and contains game ELEMENTS
+# Get-GameBoardElementArray is a core funtion to analyze gameboard field
+# Refer to its [x,y] index to get/check element in it
+Invoke-GameSync 
+$GameBoard = Get-GameBoardElementArray
+$GameBoard[15,16]
 
-# To start analyze gameboard's elements
-$GameString = Invoke-GameSync
-$AllWalls = Get-GameElementCollection -GameBoardRawString $GameString -Element Wall
+
+# Get-GameElementCollection is a core funtion to analyze gamaelements collections. Use -Element parameter to specify target list/collection
+# Below example shows how to get all walls coordinates and a count of all walls on the game field
+Invoke-GameSync
+$AllWalls = Get-GameElementCollection -Element Wall
 $AllWalls.Count
 
-$badGuys = Get-GameElementCollection -GameBoardRawString $GameString -Element OtherBomberman
+# If you need to get single elements from a given collection, use an index 
+Invoke-GameSync
+$badGuys = Get-GameElementCollection -Element OtherBomberman
 $badGuys.Count
 $badGuys[0]
 
-$beware = Get-GameElementCollection -GameBoardRawString $GameString -Element OtherBombBomberman
-$beware[0]
+#If you need obtain X or Y points, refer to second index
+Invoke-GameSync
+$MeatChopper = Get-GameElementCollection -Element MeatChopper
+$MeatChopperXcoordinate = $MeatChopper[2][0]
+$MeatChopperYcoordinate = $MeatChopper[2][1]
 
 
 
-
-
-
-
-# A kind of algorithm of constatnly playing AI. Place a bomb then move to any free space. 
+# Sample algorithm. Place a bomb then move to any free space.
+# Utilize basic functions to play the game
 #region START
-$myNextAction = "wait"
+
+# gametime counter represents relative game time during infinite loop cycle execution
 $GameTime = 5
+# this is how algorithm remembers last time when bomb was placed
 $LastTimeBombPlaced = 0
+# just define var to store next move
+$myNextAction = "wait"
+
+# infinite loop. game is running as long as powershell session exists
 while ($true)
 {
+	# gametime counter will be increased by 1 every turn
 	$GameTime++
 	"`n NEW GameTime is " + $GameTime + " LastTimeBombPlaced was " + $LastTimeBombPlaced
 	
-	$GameString = Invoke-GameSync -NextAction $myNextAction
-	$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameString
+	# sync the game. Send your game decision by specifying -NextAction , get current gameboard in background
+	# at a first loop iteration -NextAction will be "wait", after that $myNextAction will be changed continuously depending on game situation analyze 
+	Invoke-GameSync -NextAction $myNextAction
+	
+	# store gameboard element array into $GameBoard variable
+	$GameBoard = Get-GameBoardElementArray
 	
 	# Get Bomber's position
 	# If bomb just been placed, Bomberman is 'BombBomberman' game element
-	$myBombBomber = Get-GameElementCollection -GameBoardRawString $GameString -Element BombBomberman
+	$myBombBomber = Get-GameElementCollection -Element BombBomberman
 	If ($myBombBomber)
 	{
 		$x = $myBombBomber[0][0]
 		$y = $myBombBomber[0][1]
 	}
 	# In general case Bomberman is 'Bomberman' game element
-	$myBomber = Get-GameElementCollection -GameBoardRawString $GameString -Element Bomberman
+	$myBomber = Get-GameElementCollection -Element Bomberman
 	If ($myBomber)
 	{
 		$x = $myBomber[0][0]
@@ -99,16 +125,20 @@ while ($true)
 	"Bomber at x=$($x) y=$($y)"
 		
 	
-	# Place a bomb if has not been placed last 5 ticks 
+	# Place a bomb if has not been placed during last 5 game turns  
 	If (($LastTimeBombPlaced + 5) -lt $GameTime)
 	{
+		# set the action 
 		$myNextAction = "act"
+		# store gametime of bombplace action 
 		$LastTimeBombPlaced = $GameTime
 		"Placing BOMB" + " at GameTime " + $GameTime
+		# Ending current loop iteration because -$myNextAction has just been choosen
 		Continue
 	}
 	
-	# Look around for any free space to move
+	# If not able to place a bomb at current game turn, need to make a move.
+	# Check gameboard cells near bomberman's position . First "space" cell will be choosen for the next move.
 	if ($GameBoard[($x+1),($y)] -match "Space")
 	{
 		$myNextAction = "right"
@@ -211,6 +241,11 @@ getFutureBlasts
 
 
 
+# converts index within raw gamestring into gameboard x,y points 
+strpos2xy 
+# converts gameboard x,y points into index within raw gamestring
+xy2strpos
 
-	
-	
+
+
+

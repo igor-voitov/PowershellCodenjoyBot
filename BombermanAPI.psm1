@@ -1272,6 +1272,14 @@ function getBarriers {
     {
         $Wall = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element Wall
 		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element WallDestroyable
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer1
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer2
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer3
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer4
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element BombTimer5
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element OtherBombBomberman
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element OtherBomberman
+		$WallDestroyable = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element MeatChopper
 		
 		$Barriers = $Wall + $WallDestroyable
     }
@@ -1422,6 +1430,35 @@ function getBombs {
     }
 }
 
+function getBlasts {
+    [CmdletBinding()]
+    [Alias()]
+    
+    Param
+    (
+		# [string]GameBoardRawString
+		[Parameter(Mandatory=$false, 
+					ValueFromPipeline=$true,
+					ValueFromPipelineByPropertyName=$true)]
+		[ValidateNotNullOrEmpty()]
+		[ValidateLength(1090,2000)]
+		[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
+	)
+
+    Begin
+    {
+    }
+    Process
+    {
+        $Booms = Get-GameElementCollection -GameBoardRawString $GameBoardRawString -Element Boom
+
+    }
+    End
+    {
+		Return , $Booms
+    }
+}
+
 function getFutureBlasts {
 [CmdletBinding()]
 [Alias()]
@@ -1546,6 +1583,81 @@ End
 }
 
 #endregion
+
+
+# other 
+function strpos2xy {
+[CmdletBinding()]
+[Alias()]
+
+Param 
+(
+	# gamestring index
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
+	[ValidateRange(0,1095)]
+    [int]$strIndex
+)
+
+Begin
+{
+}
+Process
+{
+	if ($strIndex -gt 6) {
+	
+	$boardIndex = $strIndex - 6
+
+	$myX = 0
+	$myY = [math]::divrem( $strIndex, 33, [ref]$myX )
+	$coordinates = ($myX,$myY)
+
+
+		}
+	
+}
+End
+{
+	Return , $coordinates
+}
+}
+
+function xy2strpos {
+[CmdletBinding()]
+[Alias()]
+
+Param 
+(
+	# [int]x
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=0)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$X,
+
+	# [int]y
+    [Parameter(Mandatory=$true,
+				ParameterSetName='by single element',
+                Position=1)]
+	[ValidateRange(0,32)]
+    [ValidateNotNullOrEmpty()]
+    [int]$Y
+)
+
+Begin
+{
+}
+Process
+{
+	
+	$strPos = (($Y * 33) + $X) + 6
+}
+End
+{
+	Return , $strPos
+}
+}
 
          
 Export-ModuleMember -Function *
