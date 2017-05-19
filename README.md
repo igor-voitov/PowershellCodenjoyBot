@@ -84,15 +84,15 @@ Show-GameBoardCharArray $myGameString
 $myGameString | Show-GameBoardCharArray
 ```
 
-* **`Get-GameBoardElementArray`** gives you two-dimensional array which represents gameboard and contains game **CHARS** 
+* **`Get-GameBoardElementArray`** gives you two-dimensional array which represents gameboard and contains game CHARS 
 ```powershell
 Invoke-GameSync 
 $GameBoard = Get-GameBoardCharArray
 ```
 
-* **`Get-GameBoardElementArray`** function gives you two-dimensional array which represents gameboard and contains game **ELEMENTS**
+* **`Get-GameBoardElementArray`** function gives you two-dimensional array which represents gameboard and contains game ELEMENTS
 **`Get-GameBoardElementArray`** Get-GameBoardElementArray is a core funtion to analyze gameboard field
-Refer to its [x,y] index to get/check element in it
+Refer to [x,y] index to get/check any element
 ```powershell
 Invoke-GameSync 
 $GameBoard = Get-GameBoardElementArray
