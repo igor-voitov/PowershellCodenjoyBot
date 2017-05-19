@@ -64,7 +64,7 @@ Show-GameBoardRawGrid
 ```
 
 * To view gameboard in console output continiously use ininite loop
-```
+```powershell
 while ($true)
 {
 	Clear-Host
