@@ -90,24 +90,24 @@ Invoke-GameSync
 $GameBoard = Get-GameBoardCharArray
 ```
 
-* **`Get-GameBoardElementArray`** function gives you two-dimensional array which represents gameboard and contains game ELEMENTS
-**`Get-GameBoardElementArray`** Get-GameBoardElementArray is a core funtion to analyze gameboard field
-Refer to [x,y] index to get/check any element
+* **`Get-GameBoardElementArray`** function gives you a two-dimensional array which represents gameboard and contains game ELEMENTS
+**`Get-GameBoardElementArray`** is a core funtion to analyze gameboard field.
+Refer to [x,y] index to get/check any element within gameboard
 ```powershell
 Invoke-GameSync 
 $GameBoard = Get-GameBoardElementArray
 $GameBoard[15,16]
 ```
 
-* **`Get-GameElementCollection`** is a core funtion to analyze gamaelements collections. Use `-Element` parameter to specify target list/collection    
-Below example shows how to get all walls coordinates and a count of all walls on the game field
+* **`Get-GameElementCollection`** is a core funtion to analyze game elements collections. Use `-Element` parameter to specify target list/collection    
+Below example shows how to get a count of walls that exist on the game field all coordinates of these walls
 ```powershell
 Invoke-GameSync
 $AllWalls = Get-GameElementCollection -Element Wall
 $AllWalls.Count
 ```
 
-* If you need to get single elements from a given collection, use an index 
+* If you need to get a single element from a given collection, use the first index
 ```powershell
 Invoke-GameSync
 $badGuys = Get-GameElementCollection -Element OtherBomberman
@@ -115,7 +115,7 @@ $badGuys.Count
 $badGuys[0]
 ```
 
-* If you need obtain X or Y points, refer to second index
+* To obtain X,Y points, refer to the second index
 ```powershell
 Invoke-GameSync
 $MeatChopper = Get-GameElementCollection -Element MeatChopper
