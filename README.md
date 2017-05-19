@@ -5,27 +5,27 @@ Powershell helper/client module for
 
 [Bobmberman game rules.](https://github.com/codenjoyme/codenjoy/blob/master/CodingDojo/games/bomberman/src/main/webapp/resources/help/bomberman.html)
 
-Powershell WebSockets implementation based on the following ideas:  
+Powershell WebSockets implementation based on the following:  
 https://github.com/markwragg/Powershell-SlackBot  
 https://github.com/brianddk/ripple-ps-websocket  
 
 ---------------
-### Quickstart
+## Quickstart
 
-0. [Build/Run local gameserver](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) and [Register your player](http://127.0.0.1:8080/codenjoy-contest/register)
+1. [Build/Run local gameserver](https://github.com/codenjoyme/codenjoy/tree/master/CodingDojo/) and [Register your player](http://127.0.0.1:8080/codenjoy-contest/register)
 
-1. Import **`BombermanAPI.psm1`** module to access helper cmdlets 
+2. Import **`BombermanAPI.psm1`** module into your PS session to access basic/helper functions  
+(specify full path to the .psm1 module if module location differs from shell location )
 ```powershell
 Import-Module .\BombermanAPI.psm1 -Force
 ```
 
-2. Change/Set your Gameserver websocket connection URI and your Username in the **`$Global:BombermanURI`** variable
+3. Change/Set your Gameserver websocket connection URI and your Username in the **`$Global:BombermanURI`** variable
 ```powershell
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
 ```
 
-3. Surround **`Invoke-GameAction`** cmdlet with infinite loop to quicktest.
-Your Bomber will start moving and acting constantly
+3. Execute a loop below. Your Bomber will start moving randomly every 1sec.
 ```powershell
 while ($true)
 {
@@ -33,75 +33,19 @@ while ($true)
 }
 ```
 ---------------------
-### How to analyze the game and to make intelligent moves
-
+## How to play
 
 * Gameserver constantly sends string gameboard describing current game situation, here is how it looks like:  
 
-**board=☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼        #   # #               #☼☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼              ##     ♥     ### ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼&☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼                #        #     ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼☼                           # ##☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼&                             #☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼                               ☼☼ ☼ ☼ ☼ ☼ ☼ ☼&☼ ☼ ☼ ☼ ☼ ☼#☼ ☼ ☼#☼☼                 #       ##    ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼                        # #    ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼#☼ ☼☼    &           #    #       # ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼ ☼ ☼☼                     #    #  # ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼         ##  #          ## ## #☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼#☼ ☼ ☼☼##        &       # #  ##   #  ☼☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼ ☼ ☼☼###  #  #         #    # ###   ☼☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼ ☼☼# # # #       # #♥##   # ####  ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼#☼#☼☺☼ ☼ ☼☼&   #  #      #   &  ## ###   &☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼    #     #     # #     # & # &☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼**  
-
+```
+board=☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼        #   # #               #☼☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼              ##     ♥     ### ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼&☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼                #        #     ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼☼                           # ##☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼&                             #☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼                               ☼☼ ☼ ☼ ☼ ☼ ☼ ☼&☼ ☼ ☼ ☼ ☼ ☼#☼ ☼ ☼#☼☼                 #       ##    ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼☼                        # #    ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼#☼ ☼☼    &           #    #       # ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼ ☼ ☼☼                     #    #  # ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼         ##  #          ## ## #☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼#☼ ☼ ☼☼##        &       # #  ##   #  ☼☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼ ☼ ☼☼###  #  #         #    # ###   ☼☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼#☼ ☼☼# # # #       # #♥##   # ####  ☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼#☼ ☼#☼#☼☺☼ ☼ ☼☼&   #  #      #   &  ## ###   &☼☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼#☼ ☼ ☼ ☼ ☼ ☼ ☼ ☼☼    #     #     # #     # & # &☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼☼  
+```
 BoardSize is 33x33 points, therefore you will get a string of 33x33+6(prefix)=1095 UFT8 characters every tick(second) 
-Use **`Get-GameBoardRawString`** cmdlet to recieve gameboard rawstring
-```powershell
-Get-GameBoardRawString
-```
+---------------
 
 
-* To make it readable pipe it into Show-GameBoardRawGrid cmdlet. It will insert newline every 33 symbols:
-```powershell
-Get-GameBoardRawString | Show-GameBoardRawGrid
-```
 
 
-* To get a [char]two-dimensional array of gameboard use **`Get-GameBoardCharArray`** :
-```powershell
-$myGameboard = Get-GameBoardRawString | Get-GameBoardCharArray
-```
-
-
-* Now you have the full board, chars and coordinates(x,y) of these chars. Here is how to get char at X=10,Y=20 :
-```powershell
-$myGameboard[10,20]
-```
-
-
-* To get a single visual gameboard snaphot, pipe gamestring into **`Show-GameBoardCharArray`**
-```powershell
-Get-GameBoardRawString | Show-GameBoardCharArray
-```
-
-
-* You can make a realtime console GUI, just append a kind of infinite loop:
-```powershell
-while ($true)
-{
-	Get-GameBoardRawString | Show-GameBoardCharArray
-	Clear-Host
-}
-```
-
-
-* You can store raw gamestrings to analyze later:
-```powershell
-while ($true)
-{
-	[string[]]$myGameHistory += Get-GameBoardRawString
-}
-[string[]]$myGameHistory.ForEach({Show-GameBoardCharArray -GameBoardRawString $_})
-```
-
-
-* To get gameboard elements represented as readeble words use **`Get-GameBoardElementArray`**  
-This way you will recieve a two-dimensional string array populated with game elements values like Bomberman, BombBomberman, BombTimer2 and so forth:
-```powershell
-$myCurrentGameBoard = Get-GameBoardElementArray -GameBoardRawString $myBoardString
-```
-
-
-* Refer to any element by its index within the array (that is X,Y coordinates)
-```powershell
-$myCurrentGameBoard[30,5]
-```
 
 
 * Here is how to construct a basic decision.  
