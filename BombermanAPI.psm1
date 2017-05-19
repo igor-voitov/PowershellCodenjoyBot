@@ -5,7 +5,8 @@
 #default local server URI
 [URI]$Global:BombermanURI = "ws://127.0.0.1:8080/codenjoy-contest/ws?user=username@users.org"
 
-#basic functions
+
+#region BASIC functions
 
 function Invoke-GameSync {
 [CmdletBinding()]
@@ -208,8 +209,7 @@ Param
 	# [string]GameBoardRawString
     [Parameter(Mandatory=$false, 
                 ValueFromPipeline=$true,
-                ValueFromPipelineByPropertyName=$true, 
-                Position=0)]
+                ValueFromPipelineByPropertyName=$true)]
     [ValidateNotNullOrEmpty()]
 	[ValidateLength(1090,4000)]
     [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
@@ -247,13 +247,12 @@ function Get-GameBoardCharArray {
 Param
 (
 	# [string]GameBoardRawString
-    [Parameter(Mandatory=$true, 
+    [Parameter(Mandatory=$false, 
                 ValueFromPipeline=$true,
-                ValueFromPipelineByPropertyName=$true, 
-                Position=0)]
+                ValueFromPipelineByPropertyName=$true)]
     [ValidateNotNullOrEmpty()]
 	[ValidateLength(1090,2000)]
-    [string]$GameBoardRawString
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
 
 )
 Begin
@@ -286,13 +285,12 @@ function Show-GameBoardCharArray {
 Param
 (
 	# [string]GameBoardRawString
-    [Parameter(Mandatory=$true, 
+    [Parameter(Mandatory=$false, 
                 ValueFromPipeline=$true,
-                ValueFromPipelineByPropertyName=$true, 
-                Position=0)]
+                ValueFromPipelineByPropertyName=$true)]
     [ValidateNotNullOrEmpty()]
 	[ValidateLength(1090,2000)]
-    [string]$GameBoardRawString
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
 )
 Begin
 {
@@ -326,13 +324,12 @@ function Get-GameBoardElementArray {
 Param
 (
 	# [string]GameBoardRawString
-    [Parameter(Mandatory=$true, 
+    [Parameter(Mandatory=$false, 
                 ValueFromPipeline=$true,
-                ValueFromPipelineByPropertyName=$true, 
-                Position=0)]
+                ValueFromPipelineByPropertyName=$true)]
     [ValidateNotNullOrEmpty()]
 	[ValidateLength(1090,2000)]
-    [string]$GameBoardRawString
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
 
 )
 Begin
@@ -476,17 +473,16 @@ function Get-GameElementCollection {
 Param
 (
 	# [string]GameBoardRawString
-    [Parameter(Mandatory=$true, 
+    [Parameter(Mandatory=$false, 
                 ValueFromPipeline=$true,
-                ValueFromPipelineByPropertyName=$true, 
-                Position=0)]
+                ValueFromPipelineByPropertyName=$true)]
     [ValidateNotNullOrEmpty()]
 	[ValidateLength(1090,2000)]
-    [string]$GameBoardRawString,
+    [string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString,
 
 	# [string]Element
     [Parameter(Mandatory=$true, 
-               Position=1)]
+               Position=0)]
     [ValidateNotNullOrEmpty()]
     [ValidateSet(
 		"Bomberman",
@@ -738,10 +734,13 @@ End
 	}
 }
 }
-  
-#helper functions
+ 
+#endregion
 
-#позиция моего бомбера на доске
+
+
+#region HELPER functions
+
 function getBomberman {
     [CmdletBinding()]
     [Alias()]
@@ -773,7 +772,6 @@ function getBomberman {
     }
 }
 
-#позиции всех остальных бомберов (противников) на доске
 function getOtherBombermans {
     [CmdletBinding()]
     [Alias()]
@@ -805,7 +803,6 @@ function getOtherBombermans {
     }
 }
 
-#жив ли мой бомбер
 function isMyBombermanDead {
     [CmdletBinding()]
     [Alias()]
@@ -836,9 +833,6 @@ function isMyBombermanDead {
     }
 }
 
-
-#находится ли в позиции  x, y заданный элемент?
-#находится ли в позиции  x, y что-нибудь из заданного набора
 function isAt {
 [CmdletBinding()]
 [Alias()]
@@ -966,12 +960,6 @@ End
 }
 }
 
-#examples
-isAt -X 32 -Y 15 -Element MeatChopper
-isAt 32 15 Space,Boom,BombTimer1,Wall
-
-
-#есть ли вокруг клеточки с координатой x,y заданный элемент
 function isNear {
 [CmdletBinding()]
 [Alias()]
@@ -1060,11 +1048,6 @@ End
 }
 }
 
-#examples
-isNear -x 29 -y 31 -Element MeatChopper
-
-
-#есть ли препятствие в клеточке x, y
 function isBarrierAt {
 [CmdletBinding()]
 [Alias()]
@@ -1112,11 +1095,6 @@ End
 }
 }
 
-#examples
-isBarrierAt -X 32 -Y 32
-
-#сколько элементов заданного типа есть вокруг клетки с x, y
-#int countNear(int x, int y, Element element)
 function countNear {
 [CmdletBinding()]
 [Alias()]
@@ -1197,13 +1175,6 @@ End
 }
 }
 
-#examples
-countNear -X 16 -Y 15 -Element Wall
-
-
-#возвращает элемент в текущей клетке
-Element getAt(int x, int y)
-
 function getAt {
 [CmdletBinding()]
 [Alias()]
@@ -1251,9 +1222,6 @@ End
 }
 }
 
-getAt -X 0 -Y 0
-
-# возвращает размер доски
 function boardSize {
     [CmdletBinding()]
     [Alias()]
@@ -1282,7 +1250,6 @@ function boardSize {
     }
 }
 
-# координаты всех объектов препятствующих движению
 function getBarriers {
     [CmdletBinding()]
     [Alias()]
@@ -1314,9 +1281,6 @@ function getBarriers {
     }
 }
 
-
-# координаты всех чудиков которые могут убить бомбера
-# Collection<Point> getMeatChoppers()
 function getMeatChoppers {
     [CmdletBinding()]
     [Alias()]
@@ -1346,9 +1310,6 @@ function getMeatChoppers {
     }
 }
 
-
-# координаты всех бетонных стен
-#Collection<Point> getWalls()
 function getWalls {
     [CmdletBinding()]
     [Alias()]
@@ -1378,9 +1339,6 @@ function getWalls {
     }
 }
 
-
-# координаты всех кирпичных стен (их можно разрушать)
-# Collection<Point> getDestroyWalls()
 function getDestroyWalls {
     [CmdletBinding()]
     [Alias()]
@@ -1409,9 +1367,6 @@ function getDestroyWalls {
     }
 }
 
-
-# координаты всех бомб
-# Collection<Point> getBombs()
 function getBombs {
     [CmdletBinding()]
     [Alias()]
@@ -1467,9 +1422,6 @@ function getBombs {
     }
 }
 
-#координаты потенциально опасных мест, где бомба может разорваться. (бомба взрывается на N {решим перед началом игры} клеточек в стороны: вверх, вниз, вправо, влево)
-#Collection<Point> getFutureBlasts()
-
 function getFutureBlasts {
 [CmdletBinding()]
 [Alias()]
@@ -1490,12 +1442,6 @@ Begin
 }
 Process
 {
-	
-	Invoke-GameSync -NextAction act;
-	[string]$GameBoardRawString = [string]$Global:CurrentGameBoardRawString
-	Show-GameBoardRawGrid
-
-	
 	$FutureBlasts = New-Object System.Collections.Generic.List[System.Object]
 	$GameBoard = Get-GameBoardElementArray -GameBoardRawString $GameBoardRawString
 	
@@ -1598,6 +1544,9 @@ End
 	 Return , $FutureBlasts
 }
 }
+
+#endregion
+
          
 Export-ModuleMember -Function *
 
