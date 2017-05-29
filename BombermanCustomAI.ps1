@@ -1,6 +1,6 @@
 ﻿# QuickStart
 # 1. Import module into your PS session 
-# (specify full path to the .psm1 module if its location differs from this script location )
+# (specify full path to the .psm1 module if module location differs from shell location )
 Import-Module .\BombermanAPI.psm1 -Force
 
 # 2. Set connection URI (you should have Java websockets game server to be already up and running)
